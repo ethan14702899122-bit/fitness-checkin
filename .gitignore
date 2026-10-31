@@ -1,0 +1,11 @@
+.DS_Store
+Thumbs.db
+.env
+.env.*
+!.env.example
+.openai/
+node_modules/
+backups/
+*-备份-*.json
+*.ics
+*.tar.gz
