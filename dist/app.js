@@ -1,6 +1,22 @@
 const $=s=>document.querySelector(s), KEY='practice172.v1';
-const defaultPlans=[{title:'上肢 A',kind:'力量',note:'拉与推平衡 · 动作标准优先',ex:[['引体向上',4,'10–15','保留约2次余力，不追第一组极限'],['俯卧撑',3,'8–15','可按能力调整支撑高度'],['二头弯举',2,'10–15','肘部稳定，避免摆动']]},{title:'下肢 A',kind:'力量',note:'髋与膝协同 · 暂不采用站凳硬拉',ex:[['地面硬拉 / 罗马尼亚硬拉',3,'6–10','二选一，先确认动作和器械；重量不预设'],['深蹲 / 分腿蹲',3,'8–12','二选一，分腿蹲次数按每侧记录'],['提踵',2,'12–20','稳定支撑，缓慢下降']]},{title:'有氧与活动',kind:'有氧',note:'不负重快走30–40分钟 · 配合轻柔活动',ex:[]},{title:'上肢 B',kind:'力量',note:'适度拉力 · 给肩肘留出恢复空间',ex:[['引体向上',3,'8–12','比周一轻松，保留2–3次余力'],['俯卧撑',3,'8–15','保持身体稳定'],['划船',2,'10–15','器械固定可靠，避免腰部借力']]},{title:'下肢 B',kind:'力量',note:'膝主导与臀部 · 山羊挺身先轻量',ex:[['深蹲 / 分腿蹲',3,'8–12','分腿蹲次数按每侧记录'],['臀桥',3,'10–15','抬髋至躯干与大腿对齐'],['山羊挺身',2,'10–15','先徒手或轻量，不向后过度挺腰']]},{title:'步行日',kind:'有氧',note:'不负重快走30–45分钟 · 可以分段完成',ex:[]},{title:'恢复日',kind:'恢复',note:'轻松散步或休息 · 检查睡眠和疲劳',ex:[]}];
+const defaultPlans=[{title:'上肢 A',kind:'力量',note:'引体向上与二头弯举 · 动作标准优先',ex:[['引体向上',4,'10–15','保留约2次余力，不追第一组极限'],['二头弯举',3,'10–15','肘部稳定，避免摆动']]},{title:'下肢 A',kind:'力量',note:'地面硬拉与提踵 · 按现有器械训练',ex:[['地面硬拉',3,'6–10','先确认动作和器械，重量按能力选择'],['提踵',2,'12–20','稳定支撑，缓慢下降']]},{title:'有氧与活动',kind:'有氧',note:'不负重快走30–40分钟 · 配合轻柔活动',ex:[]},{title:'上肢 B',kind:'力量',note:'引体向上与划船 · 给肩肘留出恢复空间',ex:[['引体向上',3,'8–12','比周一轻松，保留2–3次余力'],['划船',2,'10–15','器械固定可靠，避免腰部借力']]},{title:'下肢 B',kind:'力量',note:'地面硬拉轻量日 · 腰背疲劳时减量',ex:[['地面硬拉',3,'6–10','比周二轻松，避免做到力竭'],['山羊挺身',2,'10–15','可跳过；腰背疲劳时不与硬拉叠加']]},{title:'步行日',kind:'有氧',note:'不负重快走30–45分钟 · 可以分段完成',ex:[]},{title:'恢复日',kind:'恢复',note:'轻松散步或休息 · 检查睡眠和疲劳',ex:[]}];
 let state;try{state=JSON.parse(localStorage.getItem(KEY)||'null')}catch{}state=state||{profile:{height:172,weight:72,birth:1986,time:'19:00',reminder:'18:45',second:'20:00'},plans:structuredClone(defaultPlans),logs:[],checks:{},draft:null};
+// Apply the confirmed equipment changes once; keep logs and in-progress sets intact.
+if(state.planRevision!==2){
+  state.plans.forEach((p,i)=>{
+    p.ex=p.ex.flatMap(e=>{
+      if(['俯卧撑','臀桥'].includes(e[0]))return [];
+      if(e[0]==='深蹲 / 分腿蹲')return i===4?[structuredClone(defaultPlans[4].ex[0])]:[];
+      if(e[0]==='地面硬拉 / 罗马尼亚硬拉')return [['地面硬拉',e[1],e[2],'先确认动作和器械，重量按能力选择']];
+      if(e[0]==='二头弯举')return [ [e[0],3,e[2],e[3]] ];
+      return [e];
+    });
+    if([0,1,3,4].includes(i))p.note=defaultPlans[i].note;
+  });
+  state.planRevision=2;
+  try{localStorage.setItem(KEY,JSON.stringify(state))}catch{}
+}
+
 let tab='today',day=(new Date().getDay()+6)%7,mode='normal',ends=0,timerHandle;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function dateKey(d=new Date()){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
